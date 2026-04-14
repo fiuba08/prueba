@@ -47,6 +47,10 @@ public class LibroController {
 		this.libroService = libroService;
 	}
 	
+	// REMOVED: /init endpoint was a security risk — it allowed unauthenticated
+	// database seeding. Use Flyway/Liquibase migrations or a protected admin
+	// tool for data seeding instead.
+
 	/**
 	 * {@code POST  /add} : Create a new libro.
 	 *
