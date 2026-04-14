@@ -38,7 +38,8 @@ public class LibroServiceImpl implements LibroService {
 	
 	//getting a specific record by using the method findById() of CrudRepository
 	public Libro getLibroById(int id) {
-		return libroRepository.findById(id).get();
+		return libroRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Libro not found with id: " + id));
 	}
 
 	//saving a specific record by using the method save() of CrudRepository

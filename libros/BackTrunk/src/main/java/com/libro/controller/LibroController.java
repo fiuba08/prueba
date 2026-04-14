@@ -4,7 +4,6 @@ package com.libro.controller;
 
 
 import java.net.URISyntaxException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,27 +48,6 @@ public class LibroController {
 		this.libroService = libroService;
 	}
 	
-	/**
-	 *  Init Database H2
-	 */
-	
-	@RequestMapping("/init")
-	public String index() {
-		
-		// Loader Libros
-		for (int i = 0; i < 15; i++) {
-			Libro libro1 = new Libro();
-			libro1.setTitulo("Titulo");
-			libro1.setAutor("AutorPrueba");
-			libro1.setPrecio(13.1416 * 88);
-			libro1.setFechaLanzamiento(LocalDate.now());
-			Libro result = libroService.saveOrUpdate(libro1);
-			log.debug("Libro1 Titulo : " + result.getTitulo());
-		}
-		
-		return "Data Base H2 in directory./target/BaseDatos/ init OK ";
-	}
-
 	/**
 	 * {@code POST  /add} : Create a new libro.
 	 *
