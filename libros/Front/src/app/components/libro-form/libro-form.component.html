@@ -1,0 +1,61 @@
+<div class="container mt-4">
+  <h2>{{ pageTitle }}</h2>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="close" (click)="errorMessage = ''">
+      <span>&times;</span>
+    </button>
+  </div>
+
+  <form (ngSubmit)="onSubmit()" #libroForm="ngForm">
+    <div class="form-group">
+      <label for="titulo">Titulo</label>
+      <input type="text" class="form-control" id="titulo" name="titulo"
+             [(ngModel)]="libro.titulo" required minlength="3" maxlength="30"
+             #titulo="ngModel" placeholder="Enter titulo (3-30 characters)">
+      <div *ngIf="titulo.invalid && titulo.touched" class="text-danger">
+        <small *ngIf="titulo.errors?.required">Titulo is required.</small>
+        <small *ngIf="titulo.errors?.minlength">Titulo must be at least 3 characters.</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="autor">Autor</label>
+      <input type="text" class="form-control" id="autor" name="autor"
+             [(ngModel)]="libro.autor" required minlength="10" maxlength="50"
+             #autor="ngModel" placeholder="Enter autor (10-50 characters)">
+      <div *ngIf="autor.invalid && autor.touched" class="text-danger">
+        <small *ngIf="autor.errors?.required">Autor is required.</small>
+        <small *ngIf="autor.errors?.minlength">Autor must be at least 10 characters.</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="precio">Precio</label>
+      <input type="number" class="form-control" id="precio" name="precio"
+             [(ngModel)]="libro.precio" required min="10" max="9999999"
+             #precio="ngModel" placeholder="Enter precio (10 - 9999999)">
+      <div *ngIf="precio.invalid && precio.touched" class="text-danger">
+        <small *ngIf="precio.errors?.required">Precio is required.</small>
+        <small *ngIf="precio.errors?.min">Precio must be at least 10.</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="fechaLanzamiento">Fecha Lanzamiento</label>
+      <input type="date" class="form-control" id="fechaLanzamiento" name="fechaLanzamiento"
+             [(ngModel)]="libro.fechaLanzamiento"
+             placeholder="Select date">
+    </div>
+
+    <div class="mt-3">
+      <button type="submit" class="btn btn-success mr-2" [disabled]="libroForm.invalid">
+        {{ isEditMode ? 'Update' : 'Save' }}
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
