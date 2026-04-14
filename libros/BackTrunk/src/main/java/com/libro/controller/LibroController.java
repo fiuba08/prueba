@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.libro.exception.BadRequestException;
 import com.libro.exception.Mensaje;
 import com.libro.exception.ResourceNotFoundException;
 import com.libro.model.Libro;
@@ -42,7 +43,7 @@ public class LibroController {
 	@Autowired
 	private final LibroService libroService;
 
-	private Mensaje  mensaje;
+	private final Mensaje mensaje = new Mensaje();
 
 	public LibroController(LibroService libroService) {
 		this.libroService = libroService;
@@ -81,22 +82,22 @@ public class LibroController {
 	
 	@PostMapping("/add")
 	public ResponseEntity<Libro> createLibro(@Valid @RequestBody Libro libro)
-			throws URISyntaxException, ResourceNotFoundException {
+			throws URISyntaxException, BadRequestException {
 		
 		log.debug(mensaje.REST_REQUEST_TO_SAVE_LIBRO, libro);
 		
-		if (libroService.existsById(libro.getId()))
-			
-			 throw new ResourceNotFoundException(mensaje.EXISTE_LIBRO);
+		if (libro.getId() != 0) {
+			throw new BadRequestException("A new libro cannot already have an ID");
+		}
 
 		Libro result = libroService.save(libro);
 		
-		return ResponseEntity.ok(result);
+		return new ResponseEntity<>(result, HttpStatus.CREATED);
 	}
 	
 	// Create o Update Libros
 	@PostMapping("/createOrUpdate")
-    public ResponseEntity<Libro> UpdateOrCreate (@RequestBody Libro libro) throws ResourceNotFoundException {
+    public ResponseEntity<Libro> UpdateOrCreate (@Valid @RequestBody Libro libro) throws ResourceNotFoundException {
         Libro saveProducto = libroService.UpdateOrCreate(libro);
         return new ResponseEntity<>(saveProducto, HttpStatus.CREATED);
     }
@@ -104,30 +105,45 @@ public class LibroController {
 	// creating a get mapping that retrieves all the libros detail from the database
 	
 	@GetMapping("/list")
-	private List<Libro> getAllBooks() throws ResourceNotFoundException {
-	
- 		return  libroService.getAllLibros();
+	public ResponseEntity<List<Libro>> getAllBooks() {
+
+		List<Libro> libros = libroService.getAllLibros();
+		return ResponseEntity.ok(libros);
 	}
 
     //creating a get mapping that retrieves the detail of a specific libro
 	
 	@GetMapping("/findById/{id}")
-	private Libro getBooks(@PathVariable("id") int libroid) throws ResourceNotFoundException {
+	public ResponseEntity<Libro> getBooks(@PathVariable("id") int libroid) throws BadRequestException, ResourceNotFoundException {
 		
-		Libro libro1=libroService.getLibroById(libroid);
-		
-		if(libro1.getId()<1)
+		if (libroid < 1) {
+			throw new BadRequestException("ID must be greater than 0");
+		}
+
+		if (!libroService.existsById(libroid)) {
 			throw new ResourceNotFoundException(mensaje.NO_EXISTE_LIBRO);
+		}
+
+		Libro libro1 = libroService.getLibroById(libroid);
 		
-		return libro1;
+		return ResponseEntity.ok(libro1);
 	}
 
     //creating a delete mapping that deletes a specified libro
 	
 	@DeleteMapping("/delete/{id}")
-	private void deleteBook(@PathVariable("id") int id) {
+	public ResponseEntity<Void> deleteBook(@PathVariable("id") int id) throws BadRequestException, ResourceNotFoundException {
 		
+		if (id < 1) {
+			throw new BadRequestException("ID must be greater than 0");
+		}
+
+		if (!libroService.existsById(id)) {
+			throw new ResourceNotFoundException(mensaje.NO_EXISTE_LIBRO);
+		}
+
 		libroService.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 	/**
@@ -144,15 +160,15 @@ public class LibroController {
 	
 	@PutMapping("/update/{id}")
 	public ResponseEntity<Libro> updateLibro(@PathVariable(value = "id", required = false) final Long id,
-			@Valid @RequestBody Libro libro) throws URISyntaxException, ResourceNotFoundException {
+			@Valid @RequestBody Libro libro) throws URISyntaxException, BadRequestException, ResourceNotFoundException {
 		
 		log.debug("REST request to update Libro : {}, {}", id, libro);
 		
 		if (libro.getId() == 0) {
-			throw new ResourceNotFoundException(mensaje.ID_NULL);
+			throw new BadRequestException(mensaje.ID_NULL);
 		}
-		if (!Objects.equals(id, libro.getId())) {
-			throw new ResourceNotFoundException(mensaje.INVALID_ID);
+		if (!Objects.equals(id, (long) libro.getId())) {
+			throw new BadRequestException(mensaje.INVALID_ID);
 		}
 
 		if (!libroService.existsById(id.intValue())) {
@@ -179,16 +195,16 @@ public class LibroController {
 	
 	@PatchMapping(value = "/updateParc/{id}", consumes = { "application/json", "application/merge-patch+json" })
 	public ResponseEntity<Libro> partialUpdateLibro(@PathVariable(value = "id", required = false) final Long id,
-			@NotNull @RequestBody Libro libro) throws URISyntaxException, ResourceNotFoundException {
+			@NotNull @RequestBody Libro libro) throws URISyntaxException, BadRequestException, ResourceNotFoundException {
 		
 		log.debug("REST request to partial update Libro partially : {}, {}", id, libro);
 		
 		
 		if (libro.getId() < 1) {
-			throw new ResourceNotFoundException(mensaje.ID_NULL);
+			throw new BadRequestException(mensaje.ID_NULL);
 		}
-		if (!Objects.equals(id, libro.getId())) {
-			throw new ResourceNotFoundException(mensaje.INVALID_ID);
+		if (!Objects.equals(id, (long) libro.getId())) {
+			throw new BadRequestException(mensaje.INVALID_ID);
 		}
 
 		if (!libroService.existsById(id.intValue())) {
@@ -197,7 +213,10 @@ public class LibroController {
 
 		Optional<Libro> result = libroService.partialUpdate(libro);
 
-		return ResponseEntity.ok().body(result.get());
+		if (result.isPresent()) {
+			return ResponseEntity.ok().body(result.get());
+		}
+		throw new ResourceNotFoundException(mensaje.ID_NOT_FOUND);
 	}
 	
 }
