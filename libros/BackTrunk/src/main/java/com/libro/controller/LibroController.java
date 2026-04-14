@@ -4,7 +4,6 @@ package com.libro.controller;
 
 
 import java.net.URISyntaxException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,27 +48,6 @@ public class LibroController {
 	}
 	
 	/**
-	 *  Init Database H2
-	 */
-	
-	@RequestMapping("/init")
-	public String index() {
-		
-		// Loader Libros
-		for (int i = 0; i < 15; i++) {
-			Libro libro1 = new Libro();
-			libro1.setTitulo("Titulo");
-			libro1.setAutor("AutorPrueba");
-			libro1.setPrecio(13.1416 * 88);
-			libro1.setFechaLanzamiento(LocalDate.now());
-			Libro result = libroService.saveOrUpdate(libro1);
-			log.debug("Libro1 Titulo : " + result.getTitulo());
-		}
-		
-		return "Data Base H2 in directory./target/BaseDatos/ init OK ";
-	}
-
-	/**
 	 * {@code POST  /add} : Create a new libro.
 	 *
 	 * @param libro the libro to create.
@@ -96,7 +74,7 @@ public class LibroController {
 	
 	// Create o Update Libros
 	@PostMapping("/createOrUpdate")
-    public ResponseEntity<Libro> UpdateOrCreate (@RequestBody Libro libro) throws ResourceNotFoundException {
+    public ResponseEntity<Libro> UpdateOrCreate (@Valid @RequestBody Libro libro) throws ResourceNotFoundException {
         Libro saveProducto = libroService.UpdateOrCreate(libro);
         return new ResponseEntity<>(saveProducto, HttpStatus.CREATED);
     }
@@ -104,7 +82,7 @@ public class LibroController {
 	// creating a get mapping that retrieves all the libros detail from the database
 	
 	@GetMapping("/list")
-	private List<Libro> getAllBooks() throws ResourceNotFoundException {
+	public List<Libro> getAllBooks() throws ResourceNotFoundException {
 	
  		return  libroService.getAllLibros();
 	}
@@ -112,7 +90,7 @@ public class LibroController {
     //creating a get mapping that retrieves the detail of a specific libro
 	
 	@GetMapping("/findById/{id}")
-	private Libro getBooks(@PathVariable("id") int libroid) throws ResourceNotFoundException {
+	public Libro getBooks(@PathVariable("id") int libroid) throws ResourceNotFoundException {
 		
 		Libro libro1=libroService.getLibroById(libroid);
 		
@@ -125,9 +103,12 @@ public class LibroController {
     //creating a delete mapping that deletes a specified libro
 	
 	@DeleteMapping("/delete/{id}")
-	private void deleteBook(@PathVariable("id") int id) {
-		
+	public ResponseEntity<Void> deleteBook(@PathVariable("id") int id) throws ResourceNotFoundException {
+		if (!libroService.existsById(id)) {
+			throw new ResourceNotFoundException(mensaje.ID_NOT_FOUND);
+		}
 		libroService.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 	/**
