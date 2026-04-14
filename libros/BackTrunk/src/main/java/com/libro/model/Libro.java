@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
@@ -22,7 +23,12 @@ import com.sun.istack.NotNull;
  * A Libro.
  */
 @Entity
-@Table(name = "libros")
+@Table(name = "libros", indexes = {
+	@Index(name = "idx_libros_titulo", columnList = "titulo"),
+	@Index(name = "idx_libros_autor", columnList = "autor"),
+	@Index(name = "idx_libros_precio", columnList = "precio"),
+	@Index(name = "idx_libros_fecha_lanzamiento", columnList = "fecha_lanzamiento")
+})
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Libro implements Serializable {
 
